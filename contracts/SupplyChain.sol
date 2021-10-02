@@ -31,7 +31,7 @@ contract SupplyChain {
 
   event LogForSale(uint sku);
 
-  // <LogSold event: sku arg>
+  event LogSold(uint sku);
 
   // <LogShipped event: sku arg>
 
@@ -52,7 +52,7 @@ contract SupplyChain {
   }
 
   modifier paidEnough(uint _price) { 
-    // require(msg.value >= _price); 
+    require(msg.value >= _price, "Insufficient funds.");
     _;
   }
 
@@ -62,6 +62,11 @@ contract SupplyChain {
     // uint _price = items[_sku].price;
     // uint amountToRefund = msg.value - _price;
     // items[_sku].buyer.transfer(amountToRefund);
+  }
+
+  modifier isItemForSale(uint _sku) {
+    require(items[_sku].state == State.ForSale, "Item is not for sale.");
+    _;
   }
 
   // For each of the following modifiers, use what you learned about modifiers
@@ -128,7 +133,19 @@ contract SupplyChain {
   //    - check the value after the function is called to make 
   //      sure the buyer is refunded any excess ether sent. 
   // 6. call the event associated with this function!
-  function buyItem(uint sku) public {}
+  function buyItem(uint sku) payable public isItemForSale(sku) paidEnough(items[sku].price) {
+    // 2. this should transfer money to the seller,
+    items[sku].seller.transfer(items[sku].price);
+
+    // 3. set the buyer as the person who called this transaction,
+    items[sku].buyer = msg.sender;
+
+    // 4. set the state to Sold.
+    items[sku].state = State.Sold;
+
+    // 6. call the event associated with this function!
+    emit LogSold(sku);
+  }
 
   // 1. Add modifiers to check:
   //    - the item is sold already 
