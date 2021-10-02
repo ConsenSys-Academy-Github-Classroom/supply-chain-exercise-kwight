@@ -57,9 +57,9 @@ contract SupplyChain {
   modifier checkValue(uint _sku) {
     //refund them after pay for item (why it is before, _ checks for logic before func)
     _;
-    // uint _price = items[_sku].price;
-    // uint amountToRefund = msg.value - _price;
-    // items[_sku].buyer.transfer(amountToRefund);
+    uint _price = items[_sku].price;
+    uint amountToRefund = msg.value - _price;
+    items[_sku].buyer.transfer(amountToRefund);
   }
 
   modifier isItemForSale(uint _sku) {
@@ -151,7 +151,7 @@ contract SupplyChain {
   //    - check the value after the function is called to make 
   //      sure the buyer is refunded any excess ether sent. 
   // 6. call the event associated with this function!
-  function buyItem(uint sku) payable public isItemForSale(sku) paidEnough(items[sku].price) {
+  function buyItem(uint sku) payable public isItemForSale(sku) paidEnough(items[sku].price) checkValue(sku) {
     // 2. this should transfer money to the seller,
     items[sku].seller.transfer(items[sku].price);
 
